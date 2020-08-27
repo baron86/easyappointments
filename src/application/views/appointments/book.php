@@ -7,22 +7,31 @@
     <meta name="theme-color" content="#35A768">
 
     <title><?= lang('page_title') . ' ' .  $company_name ?></title>
-
+<link rel="stylesheet" type="text/css" href="<?= asset_url('/assets/ext/jquery-fullcalendar/fullcalendar.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/ext/bootstrap/css/bootstrap.min.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/ext/jquery-ui/jquery-ui.min.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/ext/jquery-qtip/jquery.qtip.min.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/ext/cookieconsent/cookieconsent.min.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/frontend.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/general.css') ?>">
+    <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/frontend_calendar.css') ?>">
 
     <link rel="icon" type="image/x-icon" href="<?= asset_url('assets/img/favicon.ico') ?>">
     <link rel="icon" sizes="192x192" href="<?= asset_url('assets/img/logo.png') ?>">
+    
+    
+    
+    
+    
+    
+    
+    
 </head>
 
 <body>
     <div id="main" class="container">
         <div class="wrapper row">
-            <div id="book-appointment-wizard" class="col-xs-12 col-md-10 col-md-offset-1 col-lg-8 col-lg-offset-2">
+            <div id="book-appointment-wizard" class="col-xs-12 col-md-12 col-md-offset-0 col-lg-12 col-lg-offset-0">
 
                 <!-- FRAME TOP BAR -->
 
@@ -81,79 +90,41 @@
                     }
                 ?>
 
-                <!-- SELECT SERVICE AND PROVIDER -->
+                <!-- SELECT PACKAGE -->
 
                 <div id="wizard-frame-1" class="wizard-frame">
                     <div class="frame-container">
                         <h3 class="frame-title"><?= lang('step_one_title') ?></h3>
 
                         <div class="frame-content">
+                            <!--select package-->
                             <div class="form-group">
-                                <label for="select-service">
-                                    <strong><?= lang('select_service') ?></strong>
+                                <label for="select-package">
+                                    <strong><?= lang('select_package') ?></strong>
                                 </label>
 
-                                <select id="select-service" class="col-xs-12 col-sm-4 form-control">
-                                    <?php
-                                        // Group services by category, only if there is at least one service with a parent category.
-                                        $has_category = FALSE;
-                                        foreach($available_services as $service) {
-                                            if ($service['category_id'] != NULL) {
-                                                $has_category = TRUE;
-                                                break;
+                                <select id="select-package" class="col-xs-12 col-sm-4 form-control">
+                                
+                                <option disabled selected>-- Select --</option>
+                                <?php   
+                                    
+                                    
+                                    foreach($available_packages as $package) {
+                                                echo '<option value="' . $package['id'] . '">' . $package['name'] . '</option>';
                                             }
-                                        }
-
-                                        if ($has_category) {
-                                            $grouped_services = array();
-
-                                            foreach($available_services as $service) {
-                                                if ($service['category_id'] != NULL) {
-                                                    if (!isset($grouped_services[$service['category_name']])) {
-                                                        $grouped_services[$service['category_name']] = array();
-                                                    }
-
-                                                    $grouped_services[$service['category_name']][] = $service;
-                                                }
-                                            }
-
-                                            // We need the uncategorized services at the end of the list so
-                                            // we will use another iteration only for the uncategorized services.
-                                            $grouped_services['uncategorized'] = array();
-                                            foreach($available_services as $service) {
-                                                if ($service['category_id'] == NULL) {
-                                                    $grouped_services['uncategorized'][] = $service;
-                                                }
-                                            }
-
-                                            foreach($grouped_services as $key => $group) {
-                                                $group_label = ($key != 'uncategorized')
-                                                        ? $group[0]['category_name'] : 'Uncategorized';
-
-                                                if (count($group) > 0) {
-                                                    echo '<optgroup label="' . $group_label . '">';
-                                                    foreach($group as $service) {
-                                                        echo '<option value="' . $service['id'] . '">'
-                                                            . $service['name'] . '</option>';
-                                                    }
-                                                    echo '</optgroup>';
-                                                }
-                                            }
-                                        }  else {
-                                            foreach($available_services as $service) {
-                                                echo '<option value="' . $service['id'] . '">' . $service['name'] . '</option>';
-                                            }
-                                        }
+                                    
+                                    
+                                    
+                                    
+                                    
                                     ?>
+                                
+                                    
+                                
+                                
+                                
+                                
                                 </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="select-provider">
-                                    <strong><?= lang('select_provider') ?></strong>
-                                </label>
-
-                                <select id="select-provider" class="col-xs-12 col-sm-4 form-control"></select>
                             </div>
 
                             <div id="service-description" style="display:none;"></div>
@@ -161,8 +132,7 @@
                     </div>
 
                     <div class="command-buttons">
-                        <button type="button" id="button-next-1" class="btn button-next btn-primary"
-                                data-step_index="1">
+                        <button type="button" id="button-next-1" class="btn button-next btn-primary" data-step_index="1">
                             <?= lang('next') ?>
                             <span class="glyphicon glyphicon-forward"></span>
                         </button>
@@ -175,14 +145,40 @@
                     <div class="frame-container">
 
                         <h3 class="frame-title"><?= lang('step_two_title') ?></h3>
-
+                        
+                        
+                        <div class="row appointment-selection-header">
+                            <div class="col-xs-12 col-sm-6 col-md-6">                                
+                                <strong>Schedule</strong>
+                                 <hr />
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-6">
+                                <div id="basket-count-display"><strong>Basket <span id="basket-count"></span></strong></div>
+                                 <hr />
+                            </div>
+                        </div>    
+                        
+                       
+                        
                         <div class="frame-content row">
-                            <div class="col-xs-12 col-sm-6">
-                                <div id="select-date"></div>
+                            <div class="col-xs-12 col-sm-6 col-md-6">
+                                
+                                <div id="calendar"></div>
+                                
+                                
                             </div>
 
-                            <div class="col-xs-12 col-sm-6">
-                                <div id="available-hours"></div>
+                            <div class="col-xs-12 col-sm-6 col-md-6">
+                                   <div class="basket-container basket">
+                                        <ul class="form-control">
+                                            <li>        
+                                            </li>
+                                            
+                                        </ul>
+                                    </div>
+                                   
+                                   
+                                
                             </div>
                         </div>
                     </div>
@@ -335,7 +331,7 @@
 
                 <div id="frame-footer">
                     Powered By
-                    <a href="http://easyappointments.org" target="_blank">Easy!Appointments</a>
+                    <a href="http://delta-it.co.za/" target="_blank">Delta It Services</a>
                     |
                     <span id="select-language" class="label label-success">
     		        	<?= ucfirst($this->config->item('language')) ?>
@@ -365,6 +361,7 @@
         var GlobalVariables = {
             availableServices   : <?= json_encode($available_services) ?>,
             availableProviders  : <?= json_encode($available_providers) ?>,
+            availablePackages   : <?= json_encode($available_packages) ?>,
             baseUrl             : <?= json_encode(config('base_url')) ?>,
             manageMode          : <?= $manage_mode ? 'true' : 'false' ?>,
             customerToken       : <?= json_encode($customer_token) ?>,
@@ -389,7 +386,10 @@
     <script src="<?= asset_url('assets/ext/bootstrap/js/bootstrap.min.js') ?>"></script>
     <script src="<?= asset_url('assets/ext/datejs/date.js') ?>"></script>
     <script src="<?= asset_url('assets/js/frontend_book_api.js') ?>"></script>
-    <script src="<?= asset_url('assets/js/frontend_book.js') ?>"></script>
+    <script src="<?= asset_url('assets/js/frontend_book.js') ?>"></script> 
+    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.5.1/moment.min.js"></script>  
+    <script src="//cdnjs.cloudflare.com/ajax/libs/moment-range/3.0.3/moment-range.min.js"></script>
+       
 
     <script>
         $(document).ready(function() {

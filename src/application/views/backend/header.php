@@ -84,6 +84,24 @@
                         <?= lang('users') ?>
                     </a>
                 </li>
+                
+                <?php $hidden = ($privileges[PRIV_PACKAGES]['view'] ==  TRUE) ? '' : 'hidden' ?>
+                <?php $active = ($active_menu == PRIV_PACKAGES) ? 'active' : '' ?>
+                <li class="<?= $active . $hidden ?>">
+                    <a href="<?= site_url('backend/packages') ?>" class="menu-item"
+                            title="<?= lang('manage_packages_hint') ?>">
+                        <?= lang('packages') ?>
+                    </a>
+                </li>
+                
+                <?php $hidden = ($privileges[PRIV_REPORTS]['view'] ==  TRUE) ? '' : 'hidden' ?>
+                <?php $active = ($active_menu == PRIV_REPORTS) ? 'active' : '' ?>
+                <li class="<?= $active . $hidden ?>">
+                    <a href="<?= site_url('backend/reports') ?>" class="menu-item"
+                            title="<?= lang('manage_reports_hint') ?>">
+                        <?= lang('reports') ?>
+                    </a>
+                </li>
 
                 <?php $hidden = ($privileges[PRIV_SYSTEM_SETTINGS]['view'] == TRUE
                         || $privileges[PRIV_USER_SETTINGS]['view'] == TRUE) ? '' : 'hidden' ?>

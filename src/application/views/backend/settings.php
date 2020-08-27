@@ -37,11 +37,6 @@
         <?php endif ?>
         <?php if ($privileges[PRIV_SYSTEM_SETTINGS]['view'] == TRUE): ?>
             <li role="presentation">
-                <a href="#business-logic" aria-controls="business-logic" role="tab" data-toggle="tab"><?= lang('business_logic') ?></a>
-            </li>
-        <?php endif ?>
-        <?php if ($privileges[PRIV_SYSTEM_SETTINGS]['view'] == TRUE): ?>
-            <li role="presentation">
                 <a href="#legal-contents" aria-controls="legal-contents" role="tab" data-toggle="tab"><?= lang('legal_contents') ?></a>
             </li>
         <?php endif ?>
@@ -50,9 +45,9 @@
                 <a href="#current-user" aria-controls="current-user" role="tab" data-toggle="tab"><?= lang('current_user') ?></a>
             </li>
         <?php endif ?>
-        <li role="presentation">
-            <a href="#about-app" aria-controls="about-app" role="tab" data-toggle="tab"><?= lang('about_app') ?></a>
-        </li>
+        <!--<li role="presentation">
+            <a href="#about-app" aria-controls="about-app" role="tab" data-toggle="tab"></a>
+        </li>-->
     </ul>
 
     <div class="tab-content">

@@ -93,6 +93,7 @@
             $('#provider-password, #provider-password-confirm').addClass('required');
             $('#provider-notifications').prop('disabled', false);
             $('#providers').find('.add-break, .edit-break, .delete-break, #reset-working-plan').prop('disabled', false);
+            $('#providers').find('.add-working-period, .edit-working-period, .delete-working-period').prop('disabled', false);
             $('#provider-services input:checkbox').prop('disabled', false);
             $('#providers input:checkbox').prop('disabled', false);
 
@@ -114,7 +115,8 @@
             $('#provider-password, #provider-password-confirm').removeClass('required');
             $('#provider-notifications').prop('disabled', false);
             $('#provider-services input:checkbox').prop('disabled', false);
-            $('#providers').find('.add-break, .edit-break, .delete-break, #reset-working-plan').prop('disabled', false);
+            $('#providers').find('.add-break, .edit-break, .delete-break, #reset-working-plan').prop('disabled', false);            
+            $('#providers').find('.add-working-period, .edit-working-period, .delete-working-period').prop('disabled', false);
             $('#providers input:checkbox').prop('disabled', false);
             BackendUsers.wp.timepickers(false);
         });
@@ -167,7 +169,6 @@
                     calendar_view: $('#provider-calendar-view').val()
                 }
             };
-
             // Include provider services.
             provider.services = [];
             $('#provider-services input:checkbox').each(function () {
@@ -357,18 +358,21 @@
         $('#provider-notifications').removeClass('active');
         $('#provider-notifications').prop('disabled', true);
         $('#provider-services input:checkbox').prop('disabled', true);
-        $('#providers .add-break, #reset-working-plan').prop('disabled', true);
+        $('#providers .add-break, #reset-working-plan').prop('disabled', true);        
+        $('#providers .add-working-period').prop('disabled', true);
         BackendUsers.wp.timepickers(true);
         $('#providers .working-plan input:text').timepicker('destroy');
         $('#providers .working-plan input:checkbox').prop('disabled', true);
         $('.breaks').find('.edit-break, .delete-break').prop('disabled', true);
+        $('.working-plan').find('.edit-working-period, .delete-working-period').prop('disabled', true);
 
         $('#edit-provider, #delete-provider').prop('disabled', true);
         $('#providers .record-details').find('input, textarea').val('');
         $('#providers input:checkbox').prop('checked', false);
         $('#provider-services input:checkbox').prop('checked', false);
         $('#provider-services a').remove();
-        $('#providers .breaks tbody').empty();
+        $('#providers .breaks tbody').empty();        
+        $('#providers .working-plan tbody').empty();
     };
 
     /**
@@ -423,9 +427,12 @@
 
         // Display working plan
         $('#providers .breaks tbody').empty();
+        $('#providers .working-plan tbody').empty();
+        
         var workingPlan = $.parseJSON(provider.settings.working_plan);
         BackendUsers.wp.setup(workingPlan);
         $('.breaks').find('.edit-break, .delete-break').prop('disabled', true);
+        $('.working-plan').find('.edit-working-period, .delete-working-period').prop('disabled', true);
     };
 
     /**

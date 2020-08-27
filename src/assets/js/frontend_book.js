@@ -209,8 +209,8 @@ window.FrontendBook = window.FrontendBook || {};
          * When the user clicks on a service, its available providers should
          * become visible.
          */
-        $('#select-service').change(function () {
-            var currServiceId = $('#select-service').val();
+        $('#select-package').change(function () {
+            /*var currServiceId = $('#select-service').val();
             $('#select-provider').empty();
 
             $.each(GlobalVariables.availableProviders, function (indexProvider, provider) {
@@ -224,17 +224,17 @@ window.FrontendBook = window.FrontendBook || {};
                         $('#select-provider').append(optionHtml);
                     }
                 });
-            });
+            });*/
 
             // Add the "Any Provider" entry.
-            if ($('#select-provider option').length >= 1) {
+            /*if ($('#select-provider option').length >= 1) {
                 $('#select-provider').append(new Option('- ' + EALang.any_provider + ' -', 'any-provider'));
-            }
+            }*/
 
-            FrontendBookApi.getUnavailableDates($('#select-provider').val(), $(this).val(),
-                $('#select-date').datepicker('getDate').toString('yyyy-MM-dd'));
-            FrontendBook.updateConfirmFrame();
-            _updateServiceDescription($('#select-service').val(), $('#service-description'));
+            /*FrontendBookApi.getUnavailableDates($('#select-provider').val(), $(this).val(),
+                $('#select-date').datepicker('getDate').toString('yyyy-MM-dd'));*/
+            /*FrontendBook.updateConfirmFrame();*/
+            _updateServiceDescription($('#select-package').val(), $('#service-description'));
         });
 
         /**
@@ -246,14 +246,29 @@ window.FrontendBook = window.FrontendBook || {};
         $('.button-next').click(function () {
             // If we are on the first step and there is not provider selected do not continue
             // with the next step.
-            if ($(this).attr('data-step_index') === '1' && $('#select-provider').val() == null) {
+            if ($(this).attr('data-step_index') === '1' && $('#select-package').val() == null) {
                 return;
+            }
+            
+            if ($(this).attr('data-step_index') === '1') {  
+                basket=[];
+                clearBasketDiplay();                   
+                $(".basket ul").append("<div style='text-align:center'>Empty</div>");           
+                $.each(GlobalVariables.availablePackages,function(index,packageObj){
+                    if(packageObj.id === $('#select-package').val()) {
+                        GlobalVariables.selectedPackage = packageObj;
+                    }
+                })
+                $("#basket-count").append("("+basket.length+"/"+GlobalVariables.selectedPackage.units+")");
+                $("#button-next-2").prop('disabled', true);
+                $("#calendar").html("");                
+                $.getScript(GlobalVariables.baseUrl+"/assets/js/frontend_calendar.js");
             }
 
             // If we are on the 2nd tab then the user should have an appointment hour
             // selected.
             if ($(this).attr('data-step_index') === '2') {
-                if ($('.selected-hour').length == 0) {
+               /* if ($('.selected-hour').length == 0) {
                     if ($('#select-hour-prompt').length == 0) {
                         $('#available-hours').append('<br><br>'
                             + '<span id="select-hour-prompt" class="text-danger">'
@@ -261,7 +276,7 @@ window.FrontendBook = window.FrontendBook || {};
                             + '</span>');
                     }
                     return;
-                }
+                }*/
             }
 
             // If we are on the 3rd tab then we will need to validate the user's
@@ -430,7 +445,142 @@ window.FrontendBook = window.FrontendBook || {};
                 FrontendBookApi.applyPreviousUnavailableDates(); // New jQuery UI version will replace the td elements.
             }, 300); // There is no draw event unfortunately.
         })
+        
+        $(document).on('click','.remove-basket-item', function(){
+            let arrayIndex = $(this).attr("data-array-index");
+            basket.splice(arrayIndex, 1);            
+            refreshBasketDisplay();            
+        })
+        
+        $(document).on('click','.calendar-event-name', function(){
+            let date = $(this).attr("data-date");
+            let serviceId = $(this).attr("data-service-id");
+            let providerId = $(this).attr("data-provider-id");
+            let start = $(this).attr("data-start");
+            let end = $(this).attr("data-end");            
+            let dateFmt=moment(date).format('DD MMM YYYY');
+            let serviceName = null;
+            let providerName = null;
+            
+            let services=GlobalVariables.selectedPackage.services;
+            let providers=GlobalVariables.availableProviders;
+            
+            for(let i=0 ; i<services.length; i++) {
+                if(serviceId != services[i].id) {
+                    continue;
+                }
+                serviceName=services[i].name;
+            }
+            
+            for(let i=0 ; i<providers.length; i++) {
+                if(providerId != providers[i].id) {
+                    continue;
+                }
+                providerName=providers[i].first_name+" "+providers[i].last_name;
+            }
+            
+            if(!isBasketFull()){
+                addToBasket(dateFmt,serviceId,serviceName,providerId,providerName,start,end);
+                refreshBasketDisplay();
+            }
+            
+        })        
     }
+    var basket = new Array();
+    function addToBasket(date,serviceId,serviceName,providerId,providerName,start,end) {
+        let basketItem = new Object();
+        basketItem.date=date;
+        basketItem.service=serviceName;
+        basketItem.serviceId=serviceId;
+        basketItem.provider=providerName;
+        basketItem.providerId=providerId;
+        basketItem.start=start;
+        basketItem.end=end;
+        if(validateBasket(basketItem))
+        basket.push(basketItem);
+    }
+    
+    function isBasketFull() {   
+        let maxBasketCount=GlobalVariables.selectedPackage.units;
+        let currentBasketCount=basket.length;
+        if(currentBasketCount == maxBasketCount) {
+            $( "#basket-count-display" ).effect( "shake" );
+            return true;            
+        }
+        return false;
+    }
+    
+    function refreshBasketDisplay() {
+        clearBasketDiplay();
+        for(let i=0;i<basket.length;i++) {
+            let html = "";            
+            html+="<li>";        
+            html+="<div class='well'>"
+            html+="<span style='float:left'><strong>"+basket[i].service+"</strong></span><span class='remove-basket-item' data-array-index='"+i+"' style='float:right'>X</span><br>"
+            html+="<hr />"
+            html+="<span>"+basket[i].provider+"</span><br>"
+            html+="<span>"+basket[i].date+"</span><br>"
+            html+="<span>"+basket[i].start+" - "+basket[i].end+"</span>"
+            html+="</div>"
+            html+="</li>"
+            $(".basket ul").append(html);
+        }        
+        $("#basket-count").append("("+basket.length+"/"+GlobalVariables.selectedPackage.units+")");        
+        if(basket.length == GlobalVariables.selectedPackage.units) {
+            $("#button-next-2").prop('disabled', false);            
+        }
+        if(basket.length == 0) {
+            $(".basket ul").append("<div style='text-align:center'>Empty</div>");
+        }
+    }
+    
+    function clearBasketDiplay() {
+        $("#button-next-2").prop('disabled', true);
+        $(".basket ul").html("");
+        $("#basket-count").html("");
+    }    
+    
+    function validateBasket(basketItem) {        
+        // check for duplicate item
+        for(let i=0;i<basket.length;i++) {
+            let existingItem=basket[i];            
+            if(basketItem.provider != existingItem.provider) {
+                continue;
+            }
+            if(basketItem.service != existingItem.service) {
+                continue;
+            }
+            if(basketItem.start != existingItem.start) {
+                continue;
+            }
+            if(basketItem.end != existingItem.end) {
+                continue;
+            }
+            if(basketItem.date != existingItem.date) {
+                continue;
+            }
+            alert("Duplicate item");           
+            return false;
+        } 
+        return true;
+    }
+    
+    let overlap = (timeSegments) => {
+      let ret = false;
+      let i = 0;
+      while( !ret && i<timeSegments.length-1 ){
+        let seg1 = timeSegments[i];
+        let seg2 = timeSegments[i+1];
+        let range1 = moment.range( moment(seg1[0], 'HH:mm'),  moment(seg1[1], 'HH:mm'));
+        let range2 = moment.range( moment(seg2[0], 'HH:mm'),  moment(seg2[1], 'HH:mm'));
+        if( range1.overlaps(range2) ){
+          ret = true;
+        }
+        i++;
+
+        return ret;
+      }
+    };
 
     /**
      * This function validates the customer's data input. The user cannot continue
@@ -486,40 +636,25 @@ window.FrontendBook = window.FrontendBook || {};
      * customer settings and input for the appointment booking.
      */
     exports.updateConfirmFrame = function () {
-        if ($('.selected-hour').text() === '') {
+        /*if ($('.selected-hour').text() === '') {
             return;
-        }
+        }*/
 
         // Appointment Details
-        var selectedDate = $('#select-date').datepicker('getDate');
-
-        if (selectedDate !== null) {
-            selectedDate = GeneralFunctions.formatDate(selectedDate, GlobalVariables.dateFormat);
-        }
-
-        var selServiceId = $('#select-service').val();
-        var servicePrice;
-        var serviceCurrency;
-
-        $.each(GlobalVariables.availableServices, function (index, service) {
-            if (service.id == selServiceId) {
-                servicePrice = '<br>' + service.price;
-                serviceCurrency = service.currency;
-                return false; // break loop
-            }
-        });
-
-        var html =
-            '<h4>' + $('#select-service option:selected').text() + '</h4>' +
-            '<p>'
-            + '<strong class="text-primary">'
-            + $('#select-provider option:selected').text() + '<br>'
-            + selectedDate + ' ' + $('.selected-hour').text()
-            + servicePrice + ' ' + serviceCurrency
-            + '</strong>' +
-            '</p>';
-
-        $('#appointment-details').html(html);
+        var html ="";
+        html +='<h4>' + GlobalVariables.selectedPackage.name + '</h4>';
+        html += '<p>'+GlobalVariables.selectedPackage.price + ' Rand</p>';
+        $.each(basket,function(i,item){
+                html +='<p>';
+                html += '<strong class="text-primary">';
+                html += item.provider + '<br>';
+                html += item.service + '<br>';
+                html += item.date + ' - ' + item.start+' to '+ item.end;
+                html += '</strong>';
+                html +='</p>';
+        })
+        
+        $('#appointment-details').append(html);        
 
         // Customer Details
         var firstName = GeneralFunctions.escapeHtml($('#first-name').val());
@@ -530,7 +665,7 @@ window.FrontendBook = window.FrontendBook || {};
         var city = GeneralFunctions.escapeHtml($('#city').val());
         var zipCode = GeneralFunctions.escapeHtml($('#zip-code').val());
 
-        html =
+        var html2 =
             '<h4>' + firstName + ' ' + lastName + '</h4>' +
             '<p>' +
             EALang.phone + ': ' + phoneNumber +
@@ -544,7 +679,7 @@ window.FrontendBook = window.FrontendBook || {};
             EALang.zip_code + ': ' + zipCode +
             '</p>';
 
-        $('#customer-details').html(html);
+        $('#customer-details').html(html2);
 
         // Update appointment form data for submission to server when the user confirms
         // the appointment.
@@ -559,16 +694,20 @@ window.FrontendBook = window.FrontendBook || {};
             city: $('#city').val(),
             zip_code: $('#zip-code').val()
         };
+        
+        var appointments = new Array();
+        
+        for(let i=0 ; i < basket.length ; i++) {
+            let appointment = new Object();
+            appointment.start_datetime=basket[i].date+' '+basket[i].start;
+            appointment.end_datetime=basket[i].date+' '+basket[i].end;
+            appointment.id_users_provider = basket[i].providerId;
+            appointment.id_services = basket[i].serviceId;
+            appointments.push(appointment);
+        }
+        
 
-        postData.appointment = {
-            start_datetime: $('#select-date').datepicker('getDate').toString('yyyy-MM-dd')
-            + ' ' + Date.parse($('.selected-hour').text()).toString('HH:mm') + ':00',
-            end_datetime: _calcEndDatetime(),
-            notes: $('#notes').val(),
-            is_unavailable: false,
-            id_users_provider: $('#select-provider').val(),
-            id_services: $('#select-service').val()
-        };
+        postData.appointments = appointments;
 
         postData.manage_mode = FrontendBook.manageMode;
 
@@ -576,6 +715,9 @@ window.FrontendBook = window.FrontendBook || {};
             postData.appointment.id = GlobalVariables.appointmentData.id;
             postData.customer.id = GlobalVariables.customerData.id;
         }
+        
+        console.log(postData);
+        
         $('input[name="csrfToken"]').val(GlobalVariables.csrfToken);
         $('input[name="post_data"]').val(JSON.stringify(postData));
     };
@@ -664,8 +806,9 @@ window.FrontendBook = window.FrontendBook || {};
      */
     function _updateServiceDescription(serviceId, $div) {
         var html = '';
+            //console.log(serviceId);
 
-        $.each(GlobalVariables.availableServices, function (index, service) {
+        $.each(GlobalVariables.availablePackages, function (index, service) {
             if (service.id == serviceId) { // Just found the service.
                 html = '<strong>' + service.name + ' </strong>';
 
@@ -673,12 +816,12 @@ window.FrontendBook = window.FrontendBook || {};
                     html += '<br>' + service.description + '<br>';
                 }
 
-                if (service.duration != '' && service.duration != null) {
+                /*if (service.duration != '' && service.duration != null) {
                     html += '[' + EALang.duration + ' ' + service.duration + ' ' + EALang.minutes + ']';
-                }
+                }*/
 
                 if (service.price != '' && service.price != null) {
-                    html += '[' + EALang.price + ' ' + service.price + ' ' + service.currency + ']';
+                    html += '[' + EALang.price + ' ' + service.price + ' Rand]';
                 }
 
                 html += '<br>';

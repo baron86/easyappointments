@@ -649,6 +649,46 @@ class Backend_api extends CI_Controller {
                 ->set_output(json_encode(['exceptions' => [exceptionToJavaScript($exc)]]));
         }
     }
+    
+    public function ajax_filter_packages()
+    {
+        try
+        {
+            if ($this->privileges[PRIV_PACKAGES]['view'] == FALSE)
+            {
+                throw new Exception('You do not have the required privileges for this task.');
+            }
+
+            $this->load->model('appointments_model');
+            $this->load->model('services_model');
+            $this->load->model('providers_model');
+            $this->load->model('customers_model');
+            $this->load->model('packages_model');
+
+            $key = $this->db->escape_str($this->input->post('key'));
+            $key = strtoupper($key);
+
+            $where_clause =
+                '(name LIKE upper("%' . $key . '%") OR ' .
+                'description  LIKE upper("%' . $key . '%") OR ' .
+                'units LIKE upper("%' . $key . '%") OR ' .
+                'price LIKE upper("%' . $key . '%"))';
+
+            $packages = $this->packages_model->get_batch($where_clause);
+
+            
+
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode($packages));
+        }
+        catch (Exception $exc)
+        {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['exceptions' => [exceptionToJavaScript($exc)]]));
+        }
+    }
 
     /**
      * [AJAX] Insert of update unavailable time period to database.
@@ -1278,6 +1318,40 @@ class Backend_api extends CI_Controller {
                 ->set_output(json_encode(['exceptions' => [exceptionToJavaScript($exc)]]));
         }
     }
+    
+    public function ajax_save_package()
+    {
+        try
+        {
+            $this->load->model('packages_model');
+            $package = json_decode($this->input->post('packageObj'), TRUE);
+
+            $REQUIRED_PRIV = ( ! isset($provider['id']))
+                ? $this->privileges[PRIV_PACKAGES]['add']
+                : $this->privileges[PRIV_PACKAGES]['edit'];
+            if ($REQUIRED_PRIV == FALSE)
+            {
+                throw new Exception('You do not have the required privileges for this task.');
+            }
+
+            $package_id = $this->packages_model->add($package);
+
+
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'status' => AJAX_SUCCESS,
+                    'id' => $package_id
+                ]));
+        }
+        catch (Exception $exc)
+        {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['exceptions' => [exceptionToJavaScript($exc)]]));
+        }
+    }
+
 
     /**
      * [AJAX] Delete a provider record from the database.
@@ -1299,6 +1373,29 @@ class Backend_api extends CI_Controller {
 
             $this->load->model('providers_model');
             $result = $this->providers_model->delete($this->input->post('provider_id'));
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode($result ? AJAX_SUCCESS : AJAX_FAILURE));
+        }
+        catch (Exception $exc)
+        {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['exceptions' => [exceptionToJavaScript($exc)]]));
+        }
+    }
+    
+    public function ajax_delete_package()
+    {
+        try
+        {
+            if ($this->privileges[PRIV_PACKAGES]['delete'] == FALSE)
+            {
+                throw new Exception('You do not have the required privileges for this task.');
+            }
+
+            $this->load->model('packages_model');
+            $result = $this->packages_model->delete($this->input->post('package_id'));
             $this->output
                 ->set_content_type('application/json')
                 ->set_output(json_encode($result ? AJAX_SUCCESS : AJAX_FAILURE));

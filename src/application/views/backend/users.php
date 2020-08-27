@@ -2,7 +2,7 @@
 <script src="<?= asset_url('assets/js/backend_users_providers.js') ?>"></script>
 <script src="<?= asset_url('assets/js/backend_users_secretaries.js') ?>"></script>
 <script src="<?= asset_url('assets/js/backend_users.js') ?>"></script>
-<script src="<?= asset_url('assets/js/working_plan.js') ?>"></script>
+<script src="<?= asset_url('assets/js/working_plan2.js') ?>"></script>
 <script src="<?= asset_url('assets/ext/jquery-ui/jquery-ui-timepicker-addon.js') ?>"></script>
 <script src="<?= asset_url('assets/ext/jquery-jeditable/jquery.jeditable.min.js') ?>"></script>
 <script>
@@ -204,134 +204,36 @@
 
                     <div class="working-plan-view provider-view" style="display: none;">
                         <h3><?= lang('working_plan') ?></h3>
-                        <button id="reset-working-plan" class="btn btn-primary"
-                                title="<?= lang('reset_working_plan') ?>">
-                            <span class="glyphicon glyphicon-repeat"></span>
-                            <?= lang('reset_plan') ?></button>
+
+                        <span class="help-block">
+                            <?= lang('add_working_periods') ?>
+                        </span>
+
+                        <div>
+                            <button type="button" class="add-working-period btn btn-primary">
+                                <span class="glyphicon glyphicon-plus"></span>
+                                <?= lang('add_period') ?>
+                            </button>
+                        </div>
+
+                        <br>
+
                         <table class="working-plan table table-striped">
                             <thead>
                                 <tr>
                                     <th><?= lang('day') ?></th>
                                     <th><?= lang('start') ?></th>
                                     <th><?= lang('end') ?></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="checkbox">
-                                            <label>
-                                                <input type="checkbox" id="sunday">
-                                                <?= lang('sunday') ?>
-                                            </label>
-                                        </div>
-                                    </td>
-                                    <td><input id="sunday-start" class="work-start form-control input-sm"></td>
-                                    <td><input id="sunday-end" class="work-end form-control input-sm"></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="checkbox">
-                                            <label>
-                                                <input type="checkbox" id="monday">
-                                                <?= lang('monday') ?>
-                                            </label>
-                                        </div>
-                                    </td>
-                                    <td><input id="monday-start" class="work-start form-control input-sm"></td>
-                                    <td><input id="monday-end" class="work-end form-control input-sm"></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="checkbox">
-                                            <label>
-                                                <input type="checkbox" id="tuesday">
-                                                <?= lang('tuesday') ?>
-                                            </label>
-                                        </div>
-                                    </td>
-                                    <td><input id="tuesday-start" class="work-start form-control input-sm"></td>
-                                    <td><input id="tuesday-end" class="work-end form-control input-sm"></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="checkbox">
-                                            <label>
-                                                <input type="checkbox" id="wednesday">
-                                                <?= lang('wednesday') ?>
-                                            </label>
-                                        </div>
-                                    </td>
-                                    <td><input id="wednesday-start" class="work-start form-control input-sm"></td>
-                                    <td><input id="wednesday-end" class="work-end form-control input-sm"></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="checkbox">
-                                            <label>
-                                                <input type="checkbox" id="thursday">
-                                                <?= lang('thursday') ?>
-                                            </label>
-                                        </div>
-                                    </td>
-                                    <td><input id="thursday-start" class="work-start form-control input-sm"></td>
-                                    <td><input id="thursday-end" class="work-end form-control input-sm"></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="checkbox">
-                                            <label>
-                                                <input type="checkbox" id="friday">
-                                                <?= lang('friday') ?>
-                                            </label>
-                                        </div>
-                                    </td>
-                                    <td><input id="friday-start" class="work-start form-control input-sm"></td>
-                                    <td><input id="friday-end" class="work-end form-control input-sm"></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="checkbox">
-                                            <label>
-                                                <input type="checkbox" id="saturday">
-                                                <?= lang('saturday') ?>
-                                            </label>
-                                        </div>
-                                    </td>
-                                    <td><input id="saturday-start" class="work-start form-control input-sm"></td>
-                                    <td><input id="saturday-end" class="work-end form-control input-sm"></td>
-                                </tr>
-                            </tbody>
-                        </table>
-
-                        <br>
-
-                        <h3><?= lang('breaks') ?></h3>
-
-                        <span class="help-block">
-                            <?= lang('add_breaks_during_each_day') ?>
-                        </span>
-
-                        <div>
-                            <button type="button" class="add-break btn btn-primary">
-                                <span class="glyphicon glyphicon-plus"></span>
-                                <?= lang('add_break') ?>
-                            </button>
-                        </div>
-
-                        <br>
-
-                        <table class="breaks table table-striped">
-                            <thead>
-                                <tr>
-                                    <th><?= lang('day') ?></th>
-                                    <th><?= lang('start') ?></th>
-                                    <th><?= lang('end') ?></th>
+                                    <th><?= lang('service') ?></th>
                                     <th><?= lang('actions') ?></th>
                                 </tr>
                             </thead>
                             <tbody><!-- Dynamic Content --></tbody>
                         </table>
+
+                        <br>
+
+                        
                     </div>
                 </div>
             </div>

@@ -68,11 +68,17 @@ class Appointments extends CI_Controller {
         $this->load->model('services_model');
         $this->load->model('customers_model');
         $this->load->model('settings_model');
+        $this->load->model('packages_model');
+        
+        
+        
 
         try
         {
+            
             $available_services = $this->services_model->get_available_services();
             $available_providers = $this->providers_model->get_available_providers();
+            $available_packages = $this->packages_model->get_available_packages();
             $company_name = $this->settings_model->get_setting('company_name');
             $date_format = $this->settings_model->get_setting('date_format');
             $time_format = $this->settings_model->get_setting('time_format');
@@ -84,7 +90,7 @@ class Appointments extends CI_Controller {
             $privacy_policy_content = $this->settings_model->get_setting('privacy_policy_content');
 
             // Remove the data that are not needed inside the $available_providers array.
-            foreach ($available_providers as $index => $provider)
+            /*foreach ($available_providers as $index => $provider)
             {
                 $stripped_data = [
                     'id' => $provider['id'],
@@ -93,7 +99,7 @@ class Appointments extends CI_Controller {
                     'services' => $provider['services']
                 ];
                 $available_providers[$index] = $stripped_data;
-            }
+            }*/
 
             // If an appointment hash is provided then it means that the customer
             // is trying to edit a registered appointment record.
@@ -142,6 +148,7 @@ class Appointments extends CI_Controller {
             $view = [
                 'available_services' => $available_services,
                 'available_providers' => $available_providers,
+                'available_packages' => $available_packages,
                 'company_name' => $company_name,
                 'manage_mode' => $manage_mode,
                 'customer_token' => $customer_token,
@@ -445,6 +452,8 @@ class Appointments extends CI_Controller {
         try
         {
             $post_data = $this->input->post('post_data'); // alias
+            $package = $this->input->post('package');
+            
             $post_data['manage_mode'] = filter_var($post_data['manage_mode'], FILTER_VALIDATE_BOOLEAN);
 
             $this->load->model('appointments_model');
@@ -452,6 +461,8 @@ class Appointments extends CI_Controller {
             $this->load->model('services_model');
             $this->load->model('customers_model');
             $this->load->model('settings_model');
+            $this->load->model('bookings_model');
+            $this->load->model('packages_model');
 
             // Validate the CAPTCHA string.
             if ($this->settings_model->get_setting('require_captcha') === '1'
@@ -464,15 +475,23 @@ class Appointments extends CI_Controller {
                     ]));
                 return;
             }
+            
+            ;
+            
 
             // Check appointment availability.
-            if ( ! $this->_check_datetime_availability())
+            /*if ( ! $this->_check_datetime_availability())
             {
                 throw new Exception($this->lang->line('requested_hour_is_unavailable'));
-            }
+            }*/
 
-            $appointment = $_POST['post_data']['appointment'];
+            $appointments = $_POST['post_data']['appointments'];
             $customer = $_POST['post_data']['customer'];
+            
+            $booking['id_package'] = $package['id'];
+            $booking['total'] = $package['price'];
+            $this->bookings_model->create($booking);
+            
 
             if ($this->customers_model->exists($customer))
             {
@@ -480,14 +499,8 @@ class Appointments extends CI_Controller {
             }
 
             $customer_id = $this->customers_model->add($customer);
-            $appointment['id_users_customer'] = $customer_id;
-            $appointment['is_unavailable'] = (int)$appointment['is_unavailable']; // needs to be type casted
-            $appointment['id'] = $this->appointments_model->add($appointment);
-            $appointment['hash'] = $this->appointments_model->get_value('hash', $appointment['id']);
-
-            $provider = $this->providers_model->get_row($appointment['id_users_provider']);
-            $service = $this->services_model->get_row($appointment['id_services']);
-
+            
+            
             $company_settings = [
                 'company_name' => $this->settings_model->get_setting('company_name'),
                 'company_link' => $this->settings_model->get_setting('company_link'),
@@ -495,11 +508,100 @@ class Appointments extends CI_Controller {
                 'date_format' => $this->settings_model->get_setting('date_format'),
                 'time_format' => $this->settings_model->get_setting('time_format')
             ];
+            
+            $this->config->load('email');
+            $email = new \EA\Engine\Notifications\Email($this, $this->config->config);
+            
+            foreach ($appointments as $appointment) {
+                
+                $t = strtotime($appointment['start_datetime']);
+                $appointment['start_datetime']=date('Y-m-d H:i:s',$t);
+                
+                $t = strtotime($appointment['end_datetime']);
+                $appointment['end_datetime']=date('Y-m-d H:i:s',$t);
+                
+                
+                $appointment['id_users_customer'] = $customer_id;
+                $appointment['is_unavailable'] = (int)$appointment['is_unavailable']; // needs to be type casted
+                $appointment['id'] = $this->appointments_model->add($appointment);
+                $appointment['hash'] = $this->appointments_model->get_value('hash', $appointment['id']);
+                $provider = $this->providers_model->get_row($appointment['id_users_provider']);
+                $service = $this->services_model->get_row($appointment['id_services']);
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                try
+                {
+                    
+
+                    if ($post_data['manage_mode'] == FALSE)
+                    {
+                        $customer_title = new Text($this->lang->line('appointment_booked'));
+                        $customer_message = new Text($this->lang->line('thank_you_for_appointment'));
+                        $provider_title = new Text($this->lang->line('appointment_added_to_your_plan'));
+                        $provider_message = new Text($this->lang->line('appointment_link_description'));
+
+                    }
+                    else
+                    {
+                        $customer_title = new Text($this->lang->line('appointment_changes_saved'));
+                        $customer_message = new Text('');
+                        $provider_title = new Text($this->lang->line('appointment_details_changed'));
+                        $provider_message = new Text('');
+                    }
+
+                    $customer_link = new Url(site_url('appointments/index/' . $appointment['hash']));
+                    $provider_link = new Url(site_url('backend/index/' . $appointment['hash']));
+
+                    $send_customer = filter_var($this->settings_model->get_setting('customer_notifications'),
+                        FILTER_VALIDATE_BOOLEAN);
+
+                    $this->load->library('ics_file');
+                    $ics_stream = $this->ics_file->get_stream($appointment, $service, $provider, $customer);
+
+                    if ($send_customer === TRUE)
+                    {
+                        $email->sendAppointmentDetails($appointment, $provider,
+                            $service, $customer, $company_settings, $customer_title,
+                            $customer_message, $customer_link, new Email($customer['email']), new Text($ics_stream));
+                    }
+
+                    $send_provider = filter_var($this->providers_model->get_setting('notifications', $provider['id']),
+                        FILTER_VALIDATE_BOOLEAN);
+
+                    if ($send_provider === TRUE)
+                    {
+                        $email->sendAppointmentDetails($appointment, $provider,
+                            $service, $customer, $company_settings, $provider_title,
+                            $provider_message, $provider_link, new Email($provider['email']), new Text($ics_stream));
+                    }
+                }
+                catch (Exception $exc)
+                {
+                    log_message('error', $exc->getMessage());
+                    log_message('error', $exc->getTraceAsString());
+                }
+                
+                
+                
+                
+            }
+            
+            
+
+            
 
             // :: SYNCHRONIZE APPOINTMENT WITH PROVIDER'S GOOGLE CALENDAR
             // The provider must have previously granted access to his google calendar account
             // in order to sync the appointment.
-            try
+           /* try
             {
                 $google_sync = filter_var($this->providers_model->get_setting('google_sync',
                     $appointment['id_users_provider']), FILTER_VALIDATE_BOOLEAN);
@@ -535,61 +637,10 @@ class Appointments extends CI_Controller {
             {
                 log_message('error', $exc->getMessage());
                 log_message('error', $exc->getTraceAsString());
-            }
+            }*/
 
             // :: SEND NOTIFICATION EMAILS TO BOTH CUSTOMER AND PROVIDER
-            try
-            {
-                $this->config->load('email');
-                $email = new \EA\Engine\Notifications\Email($this, $this->config->config);
-
-                if ($post_data['manage_mode'] == FALSE)
-                {
-                    $customer_title = new Text($this->lang->line('appointment_booked'));
-                    $customer_message = new Text($this->lang->line('thank_you_for_appointment'));
-                    $provider_title = new Text($this->lang->line('appointment_added_to_your_plan'));
-                    $provider_message = new Text($this->lang->line('appointment_link_description'));
-
-                }
-                else
-                {
-                    $customer_title = new Text($this->lang->line('appointment_changes_saved'));
-                    $customer_message = new Text('');
-                    $provider_title = new Text($this->lang->line('appointment_details_changed'));
-                    $provider_message = new Text('');
-                }
-
-                $customer_link = new Url(site_url('appointments/index/' . $appointment['hash']));
-                $provider_link = new Url(site_url('backend/index/' . $appointment['hash']));
-
-                $send_customer = filter_var($this->settings_model->get_setting('customer_notifications'),
-                    FILTER_VALIDATE_BOOLEAN);
-
-                $this->load->library('ics_file');
-                $ics_stream = $this->ics_file->get_stream($appointment, $service, $provider, $customer);
-
-                if ($send_customer === TRUE)
-                {
-                    $email->sendAppointmentDetails($appointment, $provider,
-                        $service, $customer, $company_settings, $customer_title,
-                        $customer_message, $customer_link, new Email($customer['email']), new Text($ics_stream));
-                }
-
-                $send_provider = filter_var($this->providers_model->get_setting('notifications', $provider['id']),
-                    FILTER_VALIDATE_BOOLEAN);
-
-                if ($send_provider === TRUE)
-                {
-                    $email->sendAppointmentDetails($appointment, $provider,
-                        $service, $customer, $company_settings, $provider_title,
-                        $provider_message, $provider_link, new Email($provider['email']), new Text($ics_stream));
-                }
-            }
-            catch (Exception $exc)
-            {
-                log_message('error', $exc->getMessage());
-                log_message('error', $exc->getTraceAsString());
-            }
+            
 
             $this->output
                 ->set_content_type('application/json')

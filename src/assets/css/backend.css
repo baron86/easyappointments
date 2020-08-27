@@ -237,7 +237,7 @@ body legend {
 
 .backend-page .filter-records .results {
     overflow-y: auto;
-    max-height: 650px;
+    height: 650px;
     outline: none;
 }
 
@@ -653,6 +653,11 @@ body .form-horizontal .controls {
 }
 
 #users-page #providers .breaks .btn {
+    margin-right: 5px;
+    padding: 4px 7px;
+}
+
+#users-page #providers .working-plan .btn {
     margin-right: 5px;
     padding: 4px 7px;
 }

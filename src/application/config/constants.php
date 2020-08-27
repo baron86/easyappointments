@@ -68,8 +68,10 @@ define('PRIV_APPOINTMENTS', 'appointments');
 define('PRIV_CUSTOMERS', 'customers');
 define('PRIV_SERVICES', 'services');
 define('PRIV_USERS', 'users');
+define('PRIV_PACKAGES', 'packages');
 define('PRIV_SYSTEM_SETTINGS', 'system_settings');
 define('PRIV_USER_SETTINGS', 'user_settings');
+define('PRIV_REPORTS', 'reports');
 
 define('DATE_FORMAT_DMY', 'DMY');
 define('DATE_FORMAT_MDY', 'MDY');

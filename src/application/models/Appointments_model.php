@@ -370,7 +370,8 @@ class Appointments_Model extends CI_Model {
     public function generate_hash()
     {
         $current_date = new DateTime();
-        return md5($current_date->getTimestamp());
+        $hash=md5($current_date->getTimestamp());
+        return $hash;
     }
 
     /**

@@ -57,6 +57,7 @@ $resources = [
     'appointments',
     'unavailabilities',
     'customers',
+    'packages',
     'services',
     'categories',
     'admins',

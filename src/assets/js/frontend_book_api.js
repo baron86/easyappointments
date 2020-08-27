@@ -124,9 +124,9 @@ window.FrontendBookApi = window.FrontendBookApi || {};
         var formData = jQuery.parseJSON($('input[name="post_data"]').val());
         var postData = {
             csrfToken: GlobalVariables.csrfToken,
-            post_data: formData
+            post_data: formData,
+            package: GlobalVariables.selectedPackage
         };
-
         if ($captchaText.length > 0) {
             postData.captcha = $captchaText.val();
         }

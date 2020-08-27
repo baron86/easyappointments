@@ -168,6 +168,11 @@ body {
     line-height: 28px;
 }
 
+#book-appointment-wizard #appointment-details {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
 #book-appointment-wizard #wizard-frame-1 label {
     font-size: 19px;
     margin-bottom: 12px;
@@ -417,4 +422,8 @@ body {
     #success-frame {
         height: 100%;
     }
+}
+
+.remove-basket-item {
+    cursor: pointer
 }

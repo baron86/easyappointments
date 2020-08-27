@@ -63,6 +63,7 @@ class Backend extends CI_Controller {
         $this->load->model('roles_model');
         $this->load->model('user_model');
         $this->load->model('secretaries_model');
+        $this->load->model('packages_model');
 
         $view['base_url'] = $this->config->item('base_url');
         $view['user_display_name'] = $this->user_model->get_user_display_name($this->session->userdata('user_id'));
@@ -126,6 +127,7 @@ class Backend extends CI_Controller {
         $this->load->model('services_model');
         $this->load->model('settings_model');
         $this->load->model('user_model');
+        $this->load->model('packages_model');
 
         $view['base_url'] = $this->config->item('base_url');
         $view['user_display_name'] = $this->user_model->get_user_display_name($this->session->userdata('user_id'));
@@ -175,6 +177,7 @@ class Backend extends CI_Controller {
         $this->load->model('services_model');
         $this->load->model('settings_model');
         $this->load->model('user_model');
+        $this->load->model('packages_model');
 
         $view['base_url'] = $this->config->item('base_url');
         $view['user_display_name'] = $this->user_model->get_user_display_name($this->session->userdata('user_id'));
@@ -212,6 +215,7 @@ class Backend extends CI_Controller {
         $this->load->model('services_model');
         $this->load->model('settings_model');
         $this->load->model('user_model');
+        $this->load->model('packages_model');
 
         $view['base_url'] = $this->config->item('base_url');
         $view['user_display_name'] = $this->user_model->get_user_display_name($this->session->userdata('user_id'));
@@ -228,6 +232,38 @@ class Backend extends CI_Controller {
 
         $this->load->view('backend/header', $view);
         $this->load->view('backend/users', $view);
+        $this->load->view('backend/footer', $view);
+    }
+    
+    public function packages()
+    {
+        $this->session->set_userdata('dest_url', site_url('backend/packages'));
+
+        if ( ! $this->_has_privileges(PRIV_PACKAGES))
+        {
+            return;
+        }
+
+        $this->load->model('providers_model');
+        $this->load->model('secretaries_model');
+        $this->load->model('admins_model');
+        $this->load->model('services_model');
+        $this->load->model('settings_model');
+        $this->load->model('user_model');
+        $this->load->model('packages_model');
+
+        $view['base_url'] = $this->config->item('base_url');
+        $view['user_display_name'] = $this->user_model->get_user_display_name($this->session->userdata('user_id'));
+        $view['active_menu'] = PRIV_PACKAGES;
+        $view['company_name'] = $this->settings_model->get_setting('company_name');
+        $view['date_format'] = $this->settings_model->get_setting('date_format');
+        $view['time_format'] = $this->settings_model->get_setting('time_format');
+        $view['packages'] = $this->packages_model->get_available_packages();
+        $view['services'] = $this->services_model->get_batch();
+        $this->set_user_data($view);
+
+        $this->load->view('backend/header', $view);
+        $this->load->view('backend/packages', $view);
         $this->load->view('backend/footer', $view);
     }
 
